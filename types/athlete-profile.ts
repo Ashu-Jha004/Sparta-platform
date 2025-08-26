@@ -6,10 +6,10 @@ export interface AthleteProfile {
   dateOfBirth: Date;
   gender: "male" | "female" | "other" | "prefer-not-to-say";
   profilePhotoUrl: string;
-  location: {
-    city: string;
-    country: string;
-  };
+
+  city: string;
+  country: string;
+
   email: string;
 
   // Sporting Identity

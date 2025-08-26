@@ -6,10 +6,50 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model AthleteProfile {
+  id                Int       @id @default(autoincrement())
+  clerkUserId       String    @unique
+  fullName          String
+  athleticName      String?   @db.VarChar(30)
+  dateOfBirth       DateTime
+  gender            gender?
+  profilePhotoUrl   String
+  city      String?
+  country   String?
+  email             String
+  primarySport      String
+  otherSports       String[]  @default([])
+  bio               String?   @db.VarChar(500)
+  socialLinks       Json?
+  website           String?
+  preferredCommunication CommunicationMethod
+  shortTermGoals    String?   @db.VarChar(300)
+  longTermAspirations String? @db.VarChar(500)
+  openToTeams       Boolean
+  privacyConsent    Boolean
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([clerkUserId])
+}
+
+enum gender {
+  male
+  female
+  other
+  prefer_not_to_say
+}
+
+enum CommunicationMethod {
+  email
+  app
+}
+

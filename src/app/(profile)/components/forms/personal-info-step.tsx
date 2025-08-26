@@ -71,10 +71,10 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
       dateOfBirth: formData.dateOfBirth || undefined,
       gender: formData.gender || undefined,
       profilePhotoUrl: formData.profilePhotoUrl || "",
-      location: {
-        city: formData.location?.city || "",
-        country: formData.location?.country || "",
-      },
+
+      city: formData?.city || "",
+      country: formData?.country || "",
+
       email: formData.email || "",
     },
     mode: "onChange", // Validate immediately on change
@@ -285,7 +285,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
             </label>
             <input
               id="city"
-              {...register("location.city")}
+              {...register("city")}
               type="text"
               placeholder="e.g., Los Angeles"
               className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 
@@ -293,9 +293,9 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
                        focus:ring-2 focus:ring-red-500 focus:border-red-500 
                        transition-colors duration-200"
             />
-            {errors.location?.city && (
+            {errors?.city && (
               <p className="text-red-500 text-sm mt-1">
-                {errors.location.city.message}
+                {errors.city.message}
               </p>
             )}
           </div>
@@ -309,7 +309,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
             </label>
             <select
               id="country"
-              {...register("location.country")}
+              {...register("country")}
               className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 
                        bg-white dark:bg-gray-700 text-gray-900 dark:text-white
                        focus:ring-2 focus:ring-red-500 focus:border-red-500 
@@ -322,9 +322,9 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
                 </option>
               ))}
             </select>
-            {errors.location?.country && (
+            {errors?.country && (
               <p className="text-red-500 text-sm mt-1">
-                {errors.location.country.message}
+                {errors.country.message}
               </p>
             )}
           </div>

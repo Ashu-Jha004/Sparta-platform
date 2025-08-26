@@ -5,8 +5,6 @@ import React, { useState } from "react";
 import { AthleteProfileWizard } from "../(profile)/components/athlete-profile-wizard";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { TestImageForm } from "./components/forms/test-image-form";
-
 export default function CreateProfilePage() {
   const router = useRouter();
   const { user } = useUser();
@@ -57,12 +55,12 @@ export default function CreateProfilePage() {
           </h1>
 
           <p className="text-gray-300 text-lg mb-6">
-            Your athlete profile has been created successfully. You're now ready
+            Your athlete profile has been created successfully. You&apos;re now ready
             to connect with other athletes and start competing!
           </p>
 
           <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
-            <h3 className="text-white font-semibold mb-3">What's Next?</h3>
+            <h3 className="text-white font-semibold mb-3">What&apos;s Next?</h3>
             <ul className="text-gray-300 text-sm space-y-2">
               <li>• Explore athletes in your area</li>
               <li>• Join teams and communities</li>

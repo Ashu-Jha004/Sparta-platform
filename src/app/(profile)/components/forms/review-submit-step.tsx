@@ -1,129 +1,302 @@
-// components/forms/review-submit-step.tsx
+// src/components/forms/review-submit-step.tsx
+"use client";
+
 import React from "react";
-import { CheckCircle, ArrowLeft, ArrowRight, User } from "lucide-react";
+import {
+  Check,
+  Edit,
+  AlertCircle,
+  User,
+  Trophy,
+  Globe,
+  Target,
+} from "lucide-react";
+import { AthleteProfile } from "../../../../../types/athlete-profile";
+import { ErrorDisplay } from "../ui/Error-Display";
+import { LoadingState } from "../ui/loading-state";
+import { useProfileActions } from "../../../../../stores/profile-creation-store";
 
-export const ReviewSubmitStep = ({ onBack, onSubmit, formData }) => (
-  <div className="max-w-2xl mx-auto p-8 bg-gradient-to-br from-slate-900 via-black to-slate-900 rounded-2xl shadow-2xl border border-gray-700 text-white relative overflow-hidden">
-    <div
-      className="absolute inset-0 pointer-events-none opacity-30 z-0"
-      style={{
-        background:
-          "radial-gradient(ellipse at bottom right, #f87171 0%, transparent 70%)",
-      }}
-    />
-    <div className="relative z-10">
-      <div className="flex items-center gap-3 mb-6">
-        <CheckCircle className="w-8 h-8 text-green-400" />
-        <h2 className="text-3xl font-extrabold tracking-tight">
-          Review & Submit
-        </h2>
-      </div>
+interface ValidationError {
+  field: string;
+  message: string;
+  code: string;
+}
 
-      {/* Profile Photo Preview */}
-      <div className="flex justify-center mb-8">
-        <div className="relative">
-          {formData.profilePhotoUrl ? (
-            <div className="w-32 h-32 rounded-xl overflow-hidden border-2 border-gray-600 shadow-lg">
-              <img
-                src={formData.profilePhotoUrl}
-                alt="Profile Preview"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  // Fallback if image fails to load
-                  e.currentTarget.src =
-                    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128' fill='%23e5e7eb'%3E%3Crect width='128' height='128' fill='%23374151'/%3E%3Ctext x='50%25' y='50%25' font-size='12' text-anchor='middle' dy='.35em' fill='%23d1d5db'%3EProfile Photo%3C/text%3E%3C/svg%3E";
-                }}
-              />
-            </div>
-          ) : (
-            <div className="w-32 h-32 rounded-xl border-2 border-dashed border-gray-600 flex items-center justify-center bg-gray-800/50">
-              <div className="text-center">
-                <User className="w-8 h-8 text-gray-500 mx-auto mb-2" />
-                <p className="text-xs text-gray-500">No Photo</p>
-              </div>
-            </div>
-          )}
+interface ProfileError {
+  id: string;
+  code: string;
+  message: string;
+  field?: string;
+  timestamp: Date;
+  retryable: boolean;
+}
+
+interface ReviewSubmitStepProps {
+  formData: Partial<AthleteProfile>;
+  onBack: () => void;
+  onSubmit: () => void;
+  errors?: ProfileError[];
+  validationErrors?: ValidationError[];
+  isSubmitting?: boolean;
+}
+
+export const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({
+  formData,
+  onBack,
+  onSubmit,
+  errors = [],
+  validationErrors = [],
+  isSubmitting = false,
+}) => {
+  const { clearErrors, clearError } = useProfileActions();
+
+  const hasErrors = errors.length > 0 || validationErrors.length > 0;
+
+  // Format data for display
+  const formatValue = (value: any): string => {
+    if (value === null || value === undefined || value === "") {
+      return "Not specified";
+    }
+    if (typeof value === "boolean") {
+      return value ? "Yes" : "No";
+    }
+    if (Array.isArray(value)) {
+      return value.length > 0 ? value.join(", ") : "None";
+    }
+    if (typeof value === "object" && value.city && value.country) {
+      return `${value.city}, ${value.country}`;
+    }
+    if (value instanceof Date) {
+      return value.toLocaleDateString();
+    }
+    return String(value);
+  };
+
+  // Group form data by sections
+  const sections = [
+    {
+      title: "Personal Information",
+      icon: User,
+      fields: [
+        { label: "Full Name", value: formData.fullName },
+        { label: "Athletic Name", value: formData.athleticName },
+        { label: "Date of Birth", value: formData.dateOfBirth },
+        { label: "Gender", value: formData.gender },
+        {
+          label: "Location",
+          value:
+            formData.city && formData.country
+              ? { city: formData.city, country: formData.country }
+              : null,
+        },
+        { label: "Email", value: formData.email },
+      ],
+    },
+    {
+      title: "Sporting Identity",
+      icon: Trophy,
+      fields: [
+        { label: "Primary Sport", value: formData.primarySport },
+        { label: "Other Sports", value: formData.otherSports },
+        { label: "Bio", value: formData.bio },
+      ],
+    },
+    {
+      title: "Social & Communication",
+      icon: Globe,
+      fields: [
+        { label: "Instagram", value: formData.socialLinks?.instagram },
+        { label: "Twitter", value: formData.socialLinks?.twitter },
+        { label: "YouTube", value: formData.socialLinks?.youtube },
+        { label: "TikTok", value: formData.socialLinks?.tiktok },
+        { label: "Twitch", value: formData.socialLinks?.twitch },
+        { label: "Website", value: formData.website },
+        {
+          label: "Preferred Communication",
+          value: formData.preferredCommunication,
+        },
+      ],
+    },
+    {
+      title: "Goals & Preferences",
+      icon: Target,
+      fields: [
+        { label: "Short-term Goals", value: formData.shortTermGoals },
+        { label: "Long-term Aspirations", value: formData.longTermAspirations },
+        { label: "Open to Teams", value: formData.openToTeams },
+        { label: "Privacy Consent", value: formData.privacyConsent },
+      ],
+    },
+  ];
+
+  return (
+    <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Check className="w-8 h-8 text-green-600" />
         </div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">
+          Review Your Profile
+        </h2>
+        <p className="text-gray-600">
+          Please review your information before submitting
+        </p>
       </div>
 
-      <div className="rounded-xl border border-gray-700 bg-black/40 p-6 mb-8 text-base leading-relaxed shadow-inner">
-        <table className="w-full table-auto">
-          <tbody>
-            <tr>
-              <td className="pr-4 py-3 font-medium text-gray-300">
-                Full Name:
-              </td>
-              <td className="py-3 font-semibold">{formData.fullName}</td>
-            </tr>
-            <tr>
-              <td className="pr-4 py-3 font-medium text-gray-300">
-                Athletic Name:
-              </td>
-              <td className="py-3">
-                {formData.athleticName || (
-                  <span className="text-gray-500 italic">Not specified</span>
-                )}
-              </td>
-            </tr>
-            <tr>
-              <td className="pr-4 py-3 font-medium text-gray-300">Gender:</td>
-              <td className="py-3 capitalize">{formData.gender}</td>
-            </tr>
-            <tr>
-              <td className="pr-4 py-3 font-medium text-gray-300">
-                Date of Birth:
-              </td>
-              <td className="py-3">
-                {formData.dateOfBirth
-                  ? new Date(formData.dateOfBirth).toLocaleDateString()
-                  : ""}
-              </td>
-            </tr>
-            <tr>
-              <td className="pr-4 py-3 font-medium text-gray-300">Location:</td>
-              <td className="py-3">
-                {formData.location?.city}, {formData.location?.country}
-              </td>
-            </tr>
-            <tr>
-              <td className="pr-4 py-3 font-medium text-gray-300">Email:</td>
-              <td className="py-3">{formData.email}</td>
-            </tr>
-            {/* Add sport info if available */}
-            {formData.primarySport && (
-              <tr>
-                <td className="pr-4 py-3 font-medium text-gray-300">
-                  Primary Sport:
-                </td>
-                <td className="py-3">{formData.primarySport}</td>
-              </tr>
-            )}
-            {formData.experience && (
-              <tr>
-                <td className="pr-4 py-3 font-medium text-gray-300">
-                  Experience:
-                </td>
-                <td className="py-3 capitalize">{formData.experience}</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      {/* Error Display */}
+      {hasErrors && (
+        <div className="mb-8">
+          <ErrorDisplay
+            errors={errors}
+            validationErrors={validationErrors}
+            onClearError={clearError}
+            onClearAllErrors={clearErrors}
+          />
+        </div>
+      )}
+
+      {/* Loading State */}
+      {isSubmitting && (
+        <div className="mb-8 p-6 bg-blue-50 rounded-lg">
+          <LoadingState message="Creating your athlete profile..." size="lg" />
+        </div>
+      )}
+
+      {/* Profile Photo */}
+      {formData.profilePhotoUrl && (
+        <div className="flex justify-center mb-8">
+          <div className="relative">
+            <img
+              src={formData.profilePhotoUrl}
+              alt="Profile"
+              className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
+            />
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+              <Check className="w-3 h-3 text-white" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Review Sections */}
+      <div className="space-y-6 mb-8">
+        {sections.map((section, sectionIndex) => (
+          <div
+            key={sectionIndex}
+            className="bg-gray-50 rounded-xl p-6 border border-gray-200"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <section.icon className="w-4 h-4 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">
+                {section.title}
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {section.fields.map((field, fieldIndex) => {
+                const hasValue =
+                  field.value !== null &&
+                  field.value !== undefined &&
+                  field.value !== "" &&
+                  (!Array.isArray(field.value) || field.value.length > 0);
+
+                // Check if this field has validation errors
+                const fieldError = validationErrors.find((error) =>
+                  error.field
+                    .toLowerCase()
+                    .includes(field.label.toLowerCase().replace(/\s+/g, ""))
+                );
+
+                return (
+                  <div
+                    key={fieldIndex}
+                    className={`p-3 rounded-lg border ${
+                      fieldError
+                        ? "bg-red-50 border-red-200"
+                        : hasValue
+                        ? "bg-white border-gray-200"
+                        : "bg-gray-100 border-gray-200"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-700 mb-1">
+                          {field.label}
+                        </p>
+                        <p
+                          className={`text-sm ${
+                            fieldError
+                              ? "text-red-700"
+                              : hasValue
+                              ? "text-gray-900"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          {formatValue(field.value)}
+                        </p>
+                        {fieldError && (
+                          <p className="text-xs text-red-600 mt-1">
+                            {fieldError.message}
+                          </p>
+                        )}
+                      </div>
+                      {fieldError && (
+                        <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
 
-      <div className="flex justify-between gap-4 pt-4 border-t border-gray-800">
+      {/* Action Buttons */}
+      <div className="flex gap-4 justify-between">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium bg-gray-700 hover:bg-gray-600 text-gray-200 hover:text-white transition-all duration-200 shadow"
+          disabled={isSubmitting}
+          className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <ArrowLeft className="w-5 h-5" /> Back
+          Back to Edit
         </button>
+
         <button
           onClick={onSubmit}
-          className="flex items-center gap-2 px-8 py-3 rounded-xl font-semibold bg-gradient-to-r from-red-500 to-orange-500 hover:scale-105 hover:shadow-lg hover:shadow-red-500/25 text-white transition-all duration-200 shadow"
+          disabled={isSubmitting || hasErrors}
+          className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
-          Submit Profile <ArrowRight className="w-5 h-5" />
+          {isSubmitting ? (
+            <>
+              <LoadingState size="sm" message="" />
+              Creating Profile...
+            </>
+          ) : (
+            <>
+              <Check className="w-4 h-4" />
+              Create Profile
+            </>
+          )}
         </button>
       </div>
+
+      {/* Help Text */}
+      <div className="mt-6 text-center">
+        <p className="text-sm text-gray-500">
+          By creating your profile, you agree to our{" "}
+          <a href="#" className="text-blue-600 hover:underline">
+            Terms of Service
+          </a>{" "}
+          and{" "}
+          <a href="#" className="text-blue-600 hover:underline">
+            Privacy Policy
+          </a>
+        </p>
+      </div>
     </div>
-  </div>
-);
+  );
+};

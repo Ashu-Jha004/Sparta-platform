@@ -33,16 +33,15 @@ export const personalInfoSchema = z.object({
     .describe("Please select your gender"),
 
   profilePhotoUrl: z.string().min(1, "Profile photo is required"),
-  location: z.object({
-    city: z
-      .string()
-      .min(2, "City must be at least 2 characters")
-      .max(50, "City name is too long"),
-    country: z
-      .string()
-      .min(2, "Country must be at least 2 characters")
-      .max(50, "Country name is too long"),
-  }),
+
+  city: z
+    .string()
+    .min(2, "City must be at least 2 characters")
+    .max(50, "City name is too long"),
+  country: z
+    .string()
+    .min(2, "Country must be at least 2 characters")
+    .max(50, "Country name is too long"),
 
   email: z
     .string()
